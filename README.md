@@ -1,4 +1,4 @@
-# 📱 Chécalo
+#  Chécalo
 
 > App móvil para escanear códigos de barras y consultar precios en tiempo real según la tienda donde estás. Independiente de cualquier cadena comercial.
 
@@ -14,17 +14,17 @@ Sin depender de ninguna cadena. Para todos. Gratis.
 
 ---
 
-## ✨ Funcionalidades principales
+##  Funcionalidades principales
 
-- 📷 **Escaneo de código de barras** desde la cámara del teléfono
-- 📍 **Detección automática de tienda** por GPS
-- 💰 **Consulta de precio en tiempo real** según la tienda donde estás
-- 🏷️ **Ofertas y promociones contextuales** de la tienda actual
-- 🕓 **Historial de productos** escaneados
+-  **Escaneo de código de barras** desde la cámara del teléfono
+-  **Detección automática de tienda** por GPS
+-  **Consulta de precio en tiempo real** según la tienda donde estás
+- ️ **Ofertas y promociones contextuales** de la tienda actual
+-  **Historial de productos** escaneados
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## ️ Tecnologías utilizadas
 
 | Capa | Tecnología |
 |---|---|
@@ -38,7 +38,7 @@ Sin depender de ninguna cadena. Para todos. Gratis.
 
 ---
 
-## 🏗️ Estructura del proyecto
+## ️ Estructura del proyecto
 
 ```
 checalo-app/
@@ -94,7 +94,7 @@ OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
 
 ---
 
-## 🗺️ Hoja de ruta
+## ️ Hoja de ruta
 
 - [ ] MVP con escaneo básico y detección de tienda
 - [ ] Integración con Open Food Facts
@@ -106,7 +106,7 @@ OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
 
 ---
 
-## 🤝 Contribuciones
+##  Contribuciones
 
 Este proyecto está abierto a contribuciones. Si quieres participar:
 
@@ -118,15 +118,9 @@ Este proyecto está abierto a contribuciones. Si quieres participar:
 
 ---
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto está bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## 👤 Autor
-
-Hecho con orgullo en México 🇲🇽
 
 ---
 
