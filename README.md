@@ -57,7 +57,7 @@ checalo-app/
 
 ---
 
-## 🚀 Cómo correr el proyecto
+##  Cómo correr el proyecto
 
 ### Requisitos previos
 
