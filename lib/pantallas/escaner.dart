@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../tema/colores.dart';
+import '../servicios/ubicacion.dart';
 
 class PantallaEscaner extends StatefulWidget {
   const PantallaEscaner({super.key});
@@ -18,6 +19,11 @@ class _PantallaEscanerState extends State<PantallaEscaner>
   bool _escaneando = true;
   String? _ultimoCodigoEscaneado;
 
+  // Estado de la tienda detectada
+  InfoTienda? _tiendaActual;
+  String _mensajeTienda = 'Detectando tienda...';
+  bool _buscandoTienda = true;
+
   late AnimationController _animacionController;
   late Animation<double> _animacionLinea;
 
@@ -32,6 +38,9 @@ class _PantallaEscanerState extends State<PantallaEscaner>
     _animacionLinea = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animacionController, curve: Curves.easeInOut),
     );
+
+    // Detectar tienda al abrir la pantalla
+    _detectarTienda();
   }
 
   @override
@@ -39,6 +48,26 @@ class _PantallaEscanerState extends State<PantallaEscaner>
     _animacionController.dispose();
     _camaraController.dispose();
     super.dispose();
+  }
+
+  // Detecta la tienda actual por GPS
+  Future<void> _detectarTienda() async {
+    setState(() {
+      _buscandoTienda = true;
+      _mensajeTienda = 'Detectando tienda...';
+    });
+
+    final tienda = await ServicioUbicacion.detectarTienda();
+
+    if (mounted) {
+      setState(() {
+        _buscandoTienda = false;
+        _tiendaActual = tienda;
+        _mensajeTienda = tienda != null
+            ? tienda.nombre
+            : 'Tienda no detectada';
+      });
+    }
   }
 
   void _onCodigoDetectado(BarcodeCapture captura) {
@@ -67,7 +96,10 @@ class _PantallaEscanerState extends State<PantallaEscaner>
         final datos = jsonDecode(respuesta.body);
         if (datos['status'] == 1) {
           final producto = datos['product'];
-          final nombre = (producto['product_name_es'] ?? producto['product_name'] ?? 'Producto desconocido').toString();
+          final nombre = (producto['product_name_es'] ??
+              producto['product_name'] ??
+              'Producto desconocido')
+              .toString();
           final marca = (producto['brands'] ?? '').toString();
           final imagen = producto['image_front_small_url']?.toString();
 
@@ -103,6 +135,7 @@ class _PantallaEscanerState extends State<PantallaEscaner>
         nombre: nombre ?? 'Desconocido',
         marca: marca ?? '',
         imagen: imagen,
+        tienda: _tiendaActual,
         onEscanearOtro: () {
           Navigator.pop(context);
           setState(() {
@@ -112,6 +145,12 @@ class _PantallaEscanerState extends State<PantallaEscaner>
         },
       ),
     );
+  }
+
+  // Color del indicador de tienda según la tienda detectada
+  Color get _colorTienda {
+    if (_tiendaActual == null) return ColoresChecalo.acento;
+    return ColoresChecalo.obtenerColorTienda(_tiendaActual!.tipo);
   }
 
   @override
@@ -133,7 +172,8 @@ class _PantallaEscanerState extends State<PantallaEscaner>
             children: [
               Container(
                 margin: const EdgeInsets.only(bottom: 20),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(20),
@@ -148,6 +188,7 @@ class _PantallaEscanerState extends State<PantallaEscaner>
                 ),
               ),
 
+              // Rectángulo de escaneo
               Container(
                 width: tamanoPantalla.width * 0.75,
                 height: 160,
@@ -178,7 +219,7 @@ class _PantallaEscanerState extends State<PantallaEscaner>
                                 gradient: LinearGradient(
                                   colors: [
                                     Colors.transparent,
-                                    ColoresChecalo.acento,
+                                    _colorTienda,
                                     Colors.transparent,
                                   ],
                                 ),
@@ -193,34 +234,63 @@ class _PantallaEscanerState extends State<PantallaEscaner>
 
               const SizedBox(height: 30),
 
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_on, color: ColoresChecalo.acento, size: 16),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'Detectando tienda...',
-                      style: TextStyle(color: Colors.white, fontSize: 13),
+              // Indicador de tienda detectada
+              GestureDetector(
+                onTap: _detectarTienda,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _colorTienda.withValues(alpha: 0.5),
+                      width: 1,
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_buscandoTienda)
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            color: _colorTienda,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else
+                        Icon(Icons.location_on,
+                            color: _colorTienda, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        _mensajeTienda,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 13),
+                      ),
+                      if (!_buscandoTienda) ...[
+                        const SizedBox(width: 6),
+                        Icon(Icons.refresh,
+                            color: Colors.white.withValues(alpha: 0.6),
+                            size: 14),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
 
+        // Botón linterna
         Positioned(
           top: 16,
           right: 16,
           child: IconButton(
             onPressed: () => _camaraController.toggleTorch(),
-            icon: const Icon(Icons.flashlight_on, color: Colors.white, size: 28),
+            icon: const Icon(Icons.flashlight_on,
+                color: Colors.white, size: 28),
           ),
         ),
       ],
@@ -245,7 +315,8 @@ class _PanelCargando extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Buscando producto...',
-            style: TextStyle(color: ColoresChecalo.textoSecundario, fontSize: 14),
+            style: TextStyle(
+                color: ColoresChecalo.textoSecundario, fontSize: 14),
           ),
         ],
       ),
@@ -258,6 +329,7 @@ class _PanelResultado extends StatelessWidget {
   final String nombre;
   final String marca;
   final String? imagen;
+  final InfoTienda? tienda;
   final VoidCallback onEscanearOtro;
 
   const _PanelResultado({
@@ -265,11 +337,16 @@ class _PanelResultado extends StatelessWidget {
     required this.nombre,
     required this.marca,
     required this.imagen,
+    required this.tienda,
     required this.onEscanearOtro,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorTienda = tienda != null
+        ? ColoresChecalo.obtenerColorTienda(tienda!.tipo)
+        : ColoresChecalo.primario;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -311,7 +388,8 @@ class _PanelResultado extends StatelessWidget {
                     ),
                   ),
                 )
-                    : Icon(Icons.inventory_2, color: Colors.grey[400], size: 36),
+                    : Icon(Icons.inventory_2,
+                    color: Colors.grey[400], size: 36),
               ),
               const SizedBox(width: 14),
 
@@ -340,7 +418,8 @@ class _PanelResultado extends StatelessWidget {
                     ],
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(6),
@@ -362,25 +441,32 @@ class _PanelResultado extends StatelessWidget {
 
           const SizedBox(height: 16),
 
+          // Precio con color de la tienda
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: ColoresChecalo.primario.withValues(alpha: 0.08),
+              color: colorTienda.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colorTienda.withValues(alpha: 0.2),
+              ),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_on, color: ColoresChecalo.acento, size: 14),
+                    Icon(Icons.location_on, color: colorTienda, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      'Precio en tienda detectada',
+                      tienda != null
+                          ? tienda!.nombre
+                          : 'Tienda no detectada',
                       style: TextStyle(
-                        color: ColoresChecalo.textoSecundario,
+                        color: colorTienda,
                         fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -389,14 +475,15 @@ class _PanelResultado extends StatelessWidget {
                 Text(
                   '\$---.--',
                   style: TextStyle(
-                    color: ColoresChecalo.primario,
+                    color: colorTienda,
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'Próximamente con GPS activo',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 11),
+                  'Precio disponible próximamente',
+                  style: TextStyle(
+                      color: Colors.grey[400], fontSize: 11),
                 ),
               ],
             ),
@@ -411,10 +498,11 @@ class _PanelResultado extends StatelessWidget {
               icon: const Icon(Icons.qr_code_scanner, size: 18),
               label: const Text(
                 'Escanear otro producto',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style:
+                TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: ColoresChecalo.primario,
+                backgroundColor: colorTienda,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

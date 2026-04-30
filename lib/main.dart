@@ -1,13 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:provider/provider.dart';
 import 'pantallas/escaner.dart';
 import 'pantallas/descuentos.dart';
 import 'pantallas/cupones.dart';
 import 'tema/colores.dart';
+import 'estado/estado_tienda.dart';
 
 void main() {
-  runApp(const CheckaloApp());
+  runApp(
+    // Provider envuelve toda la app para compartir el estado de la tienda
+    ChangeNotifierProvider(
+      create: (_) => EstadoTienda(),
+      child: const CheckaloApp(),
+    ),
+  );
 }
 
 class CheckaloApp extends StatelessWidget {
@@ -15,11 +23,14 @@ class CheckaloApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Escucha el color de la tienda para el tema
+    final colorTienda = context.watch<EstadoTienda>().colorPrimario;
+
     return MaterialApp(
       title: 'Chécalo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: ColoresChecalo.primario),
+        colorScheme: ColorScheme.fromSeed(seedColor: colorTienda),
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
@@ -38,7 +49,6 @@ class PantallaBase extends StatefulWidget {
 class _PantallaBaseState extends State<PantallaBase> {
   int _indiceActual = 1;
 
-  // Estado de conexión
   EstadoConexion _estadoConexion = EstadoConexion.verificando;
   StreamSubscription? _suscripcionConexion;
 
@@ -61,21 +71,18 @@ class _PantallaBaseState extends State<PantallaBase> {
     super.dispose();
   }
 
-  // Verifica la conexión al abrir la app
   Future<void> _verificarConexion() async {
     setState(() => _estadoConexion = EstadoConexion.verificando);
-
     await Future.delayed(const Duration(milliseconds: 800));
-
     final resultado = await Connectivity().checkConnectivity();
     _actualizarEstado(resultado);
   }
 
-  // Escucha cambios en tiempo real (si pierdes o recuperas el wifi)
   void _escucharCambiosDeRed() {
-    _suscripcionConexion = Connectivity().onConnectivityChanged.listen((resultado) {
-      _actualizarEstado(resultado);
-    });
+    _suscripcionConexion =
+        Connectivity().onConnectivityChanged.listen((resultado) {
+          _actualizarEstado(resultado);
+        });
   }
 
   void _actualizarEstado(List<ConnectivityResult> resultado) {
@@ -93,18 +100,25 @@ class _PantallaBaseState extends State<PantallaBase> {
 
   @override
   Widget build(BuildContext context) {
+    // Escucha cambios de tienda para actualizar colores
+    final estadoTienda = context.watch<EstadoTienda>();
+    final colorPrimario = estadoTienda.colorPrimario;
+    final colorAcento = estadoTienda.colorAcento;
+    final nombreTienda = estadoTienda.nombreCorto;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: ColoresChecalo.primario,
+        backgroundColor: colorPrimario,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: ColoresChecalo.acento,
+                color: colorAcento,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -114,24 +128,25 @@ class _PantallaBaseState extends State<PantallaBase> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Chécalo',
-              style: TextStyle(
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 500),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
               ),
+              child: Text(nombreTienda),
             ),
           ],
         ),
         centerTitle: true,
       ),
 
-      // Banner de conexión debajo del encabezado
       body: Column(
         children: [
-          _BannerConexion(estado: _estadoConexion, onReintentar: _verificarConexion),
+          _BannerConexion(
+              estado: _estadoConexion, onReintentar: _verificarConexion),
           Expanded(
             child: _estadoConexion == EstadoConexion.sinConexion
                 ? _PantallaSinConexion(onReintentar: _verificarConexion)
@@ -166,6 +181,7 @@ class _PantallaBaseState extends State<PantallaBase> {
                   iconoActivo: Icons.local_offer,
                   etiqueta: 'Descuentos',
                   activo: _indiceActual == 0,
+                  colorActivo: colorPrimario,
                   onTap: () => setState(() => _indiceActual = 0),
                 ),
                 const SizedBox(width: 60),
@@ -174,6 +190,7 @@ class _PantallaBaseState extends State<PantallaBase> {
                   iconoActivo: Icons.confirmation_number,
                   etiqueta: 'Cupones',
                   activo: _indiceActual == 2,
+                  colorActivo: colorPrimario,
                   onTap: () => setState(() => _indiceActual = 2),
                 ),
               ],
@@ -186,9 +203,8 @@ class _PantallaBaseState extends State<PantallaBase> {
           ? null
           : FloatingActionButton(
         onPressed: () => setState(() => _indiceActual = 1),
-        backgroundColor: _indiceActual == 1
-            ? ColoresChecalo.primario
-            : ColoresChecalo.acento,
+        backgroundColor:
+        _indiceActual == 1 ? colorPrimario : colorAcento,
         elevation: _indiceActual == 1 ? 8 : 4,
         shape: const CircleBorder(),
         child: const Icon(
@@ -202,10 +218,8 @@ class _PantallaBaseState extends State<PantallaBase> {
   }
 }
 
-// Estados posibles de conexión
 enum EstadoConexion { verificando, conectado, sinConexion }
 
-// Banner pequeño que aparece debajo del encabezado
 class _BannerConexion extends StatelessWidget {
   final EstadoConexion estado;
   final VoidCallback onReintentar;
@@ -230,20 +244,19 @@ class _BannerConexion extends StatelessWidget {
               width: 14,
               height: 14,
               child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
+                  color: Colors.white, strokeWidth: 2),
             )
           else
             const Icon(Icons.wifi_off, color: Colors.white, size: 16),
           const SizedBox(width: 8),
           Text(
-            esVerificando ? 'Verificando conexión...' : 'Sin conexión a internet',
+            esVerificando
+                ? 'Verificando conexión...'
+                : 'Sin conexión a internet',
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500),
           ),
           if (!esVerificando) ...[
             const Spacer(),
@@ -267,7 +280,6 @@ class _BannerConexion extends StatelessWidget {
   }
 }
 
-// Pantalla completa cuando no hay conexión
 class _PantallaSinConexion extends StatelessWidget {
   final VoidCallback onReintentar;
 
@@ -283,7 +295,6 @@ class _PantallaSinConexion extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Ícono
               Container(
                 width: 100,
                 height: 100,
@@ -291,53 +302,39 @@ class _PantallaSinConexion extends StatelessWidget {
                   color: Colors.red[50],
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.wifi_off_rounded,
-                  size: 52,
-                  color: Colors.red[400],
-                ),
+                child: Icon(Icons.wifi_off_rounded,
+                    size: 52, color: Colors.red[400]),
               ),
               const SizedBox(height: 24),
-
               const Text(
                 'Sin conexión a internet',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style:
+                TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-
               Text(
                 'Chécalo necesita internet para consultar precios y productos. Conéctate a una red WiFi o activa tus datos móviles.',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: ColoresChecalo.textoSecundario,
-                  height: 1.5,
-                ),
+                    fontSize: 14,
+                    color: ColoresChecalo.textoSecundario,
+                    height: 1.5),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
-              // Botón reintentar
               ElevatedButton.icon(
                 onPressed: onReintentar,
                 icon: const Icon(Icons.refresh),
-                label: const Text(
-                  'Reintentar',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
+                label: const Text('Reintentar',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColoresChecalo.primario,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
-                  ),
+                      horizontal: 32, vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
@@ -348,12 +345,12 @@ class _PantallaSinConexion extends StatelessWidget {
   }
 }
 
-// Widget reutilizable para los botones de navegación
 class _BotonNavegacion extends StatelessWidget {
   final IconData icono;
   final IconData iconoActivo;
   final String etiqueta;
   final bool activo;
+  final Color colorActivo;
   final VoidCallback onTap;
 
   const _BotonNavegacion({
@@ -361,6 +358,7 @@ class _BotonNavegacion extends StatelessWidget {
     required this.iconoActivo,
     required this.etiqueta,
     required this.activo,
+    required this.colorActivo,
     required this.onTap,
   });
 
@@ -373,7 +371,7 @@ class _BotonNavegacion extends StatelessWidget {
         children: [
           Icon(
             activo ? iconoActivo : icono,
-            color: activo ? ColoresChecalo.primario : Colors.grey,
+            color: activo ? colorActivo : Colors.grey,
             size: 24,
           ),
           const SizedBox(height: 2),
@@ -381,8 +379,9 @@ class _BotonNavegacion extends StatelessWidget {
             etiqueta,
             style: TextStyle(
               fontSize: 11,
-              color: activo ? ColoresChecalo.primario : Colors.grey,
-              fontWeight: activo ? FontWeight.w600 : FontWeight.normal,
+              color: activo ? colorActivo : Colors.grey,
+              fontWeight:
+              activo ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ],
