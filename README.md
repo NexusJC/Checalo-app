@@ -1,4 +1,4 @@
-# Chécalo 🏷
+# Chécalo 
 
 ¿Cuántas veces has buscado el precio de algo en el súper y el checador no sirve, está ocupado o simplemente no aparece por ningún lado? Chécalo nació de esa frustración.
 
