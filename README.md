@@ -1,4 +1,4 @@
-# Chécalo 🏷️
+# Chécalo 🏷
 
 ¿Cuántas veces has buscado el precio de algo en el súper y el checador no sirve, está ocupado o simplemente no aparece por ningún lado? Chécalo nació de esa frustración.
 
@@ -19,7 +19,7 @@ Sin cuentas. Sin registro. Sin rollos.
 
 ---
 
-## Lo que ya funciona ✅
+## Lo que ya funciona 
 
 - Escaneo de códigos de barras con la cámara del teléfono
 - Identificación del producto con nombre, marca e imagen (Open Food Facts)
@@ -28,7 +28,7 @@ Sin cuentas. Sin registro. Sin rollos.
 - Indicador de conexión a internet en tiempo real
 - Ícono y nombre propios de la app
 
-## Lo que viene 🚧
+## Lo que viene 
 
 - Precios reales por tienda (requiere convenios con las cadenas)
 - Historial de productos escaneados
@@ -96,12 +96,6 @@ git push origin mejora/lo-que-sea
 ```
 
 Y abres un Pull Request. Así de sencillo.
-
----
-
-## Licencia
-
-MIT — úsalo, modifícalo, compártelo. Solo da crédito.
 
 ---
 
