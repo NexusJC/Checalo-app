@@ -1,127 +1,108 @@
-#  Chécalo
+# Chécalo 🏷️
 
-> App móvil para escanear códigos de barras y consultar precios en tiempo real según la tienda donde estás. Independiente de cualquier cadena comercial.
+¿Cuántas veces has buscado el precio de algo en el súper y el checador no sirve, está ocupado o simplemente no aparece por ningún lado? Chécalo nació de esa frustración.
 
----
+Es una app que convierte tu teléfono en un checador de precios — escaneas el código de barras de cualquier producto y al instante sabes cuánto cuesta, en la tienda donde estás, sin depender de ninguna cadena en específico.
 
-## ¿Qué es Chécalo?
-
-Chécalo nace de una problemática cotidiana: los checadores de precio en tiendas como Walmart, Bodega Aurrera o Chedraui casi nunca están disponibles — están lejos, no sirven o simplemente no hay suficientes.
-
-La solución es simple: usar el teléfono que ya traes en la bolsa. Escaneas el código de barras de cualquier producto y Chécalo te muestra el precio al instante, detectando automáticamente en qué tienda estás.
-
-Sin depender de ninguna cadena. Para todos. Gratis.
+**Para todos. Gratis. Hecho en México. 🇲🇽**
 
 ---
 
-##  Funcionalidades principales
+## ¿Cómo funciona?
 
--  **Escaneo de código de barras** desde la cámara del teléfono
--  **Detección automática de tienda** por GPS
--  **Consulta de precio en tiempo real** según la tienda donde estás
-- ️ **Ofertas y promociones contextuales** de la tienda actual
--  **Historial de productos** escaneados
+1. Abres la app y apuntas la cámara al código de barras
+2. Chécalo detecta automáticamente en qué tienda estás usando el GPS
+3. Te muestra el nombre del producto, su marca y el precio de esa tienda
+4. Los colores y la publicidad de la app cambian según la tienda donde estás
+
+Sin cuentas. Sin registro. Sin rollos.
 
 ---
 
-## ️ Tecnologías utilizadas
+## Lo que ya funciona ✅
 
-| Capa | Tecnología |
+- Escaneo de códigos de barras con la cámara del teléfono
+- Identificación del producto con nombre, marca e imagen (Open Food Facts)
+- Detección de tienda por GPS (Google Places API)
+- Cambio de colores según la tienda detectada
+- Indicador de conexión a internet en tiempo real
+- Ícono y nombre propios de la app
+
+## Lo que viene 🚧
+
+- Precios reales por tienda (requiere convenios con las cadenas)
+- Historial de productos escaneados
+- Selección manual de tienda
+- Descuentos y cupones contextuales
+- Lista del súper con precios en tiempo real
+
+---
+
+## Stack tecnológico
+
+| Qué | Con qué |
 |---|---|
-| App móvil | Flutter (iOS + Android) |
-| Escaneo | ML Kit Barcode Scanning |
-| GPS y tiendas | Google Places API |
-| Catálogo de productos | Open Food Facts API |
-| Base de datos | Firebase Firestore |
-| Autenticación | Firebase Auth |
-| Backend | Node.js / FastAPI |
+| App | Flutter — iOS y Android desde un solo código |
+| Escaneo | mobile_scanner |
+| Productos | Open Food Facts API |
+| Ubicación | Google Places API + geolocator |
+| Conexión | connectivity_plus |
+| Estado global | provider |
 
 ---
 
-## ️ Estructura del proyecto
+## Cómo correrlo localmente
 
-```
-checalo-app/
-├── lib/
-│   ├── pantallas/        # Vistas de la app
-│   ├── componentes/      # Widgets reutilizables
-│   ├── servicios/        # Lógica de negocio y APIs
-│   ├── modelos/          # Modelos de datos
-│   └── utilidades/       # Funciones de apoyo
-├── assets/
-│   ├── imagenes/
-│   └── iconos/
-├── test/                 # Pruebas unitarias
-└── docs/                 # Documentación del proyecto
-```
-
----
-
-##  Cómo correr el proyecto
-
-### Requisitos previos
-
-- Flutter SDK `>=3.0.0`
-- Dart `>=3.0.0`
-- Android Studio o VS Code
-- Cuenta en Firebase
-
-### Instalación
+Necesitas Flutter instalado. Si no lo tienes: [flutter.dev](https://flutter.dev/docs/get-started/install)
 
 ```bash
-# Clona el repositorio
-git clone https://github.com/tu-usuario/checalo-app.git
-
-# Entra al proyecto
-cd checalo-app
-
-# Instala las dependencias
+git clone https://github.com/NexusJC/Checalo-app.git
+cd Checalo-app
 flutter pub get
-
-# Corre la app
 flutter run
 ```
 
-### Variables de entorno
+Antes de correrlo, crea un archivo `.env` en la raíz con tu API Key de Google:
 
-Crea un archivo `.env` en la raíz del proyecto con las siguientes claves:
+---
+
+## Estructura del proyecto
 
 ```
-FIREBASE_API_KEY=tu_clave_aqui
-GOOGLE_PLACES_API_KEY=tu_clave_aqui
-OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
+lib/
+├── main.dart              — arranca la app y maneja navegación
+├── pantallas/
+│   ├── escaner.dart       — cámara, escaneo y resultado
+│   ├── descuentos.dart    — ofertas de la tienda actual
+│   └── cupones.dart       — cupones disponibles
+├── servicios/
+│   └── ubicacion.dart     — GPS y detección de tienda
+├── estado/
+│   └── estado_tienda.dart — estado global compartido
+└── tema/
+    └── colores.dart       — colores de Chécalo y de cada tienda
 ```
 
 ---
 
-## ️ Hoja de ruta
+## Contribuciones
 
-- [ ] MVP con escaneo básico y detección de tienda
-- [ ] Integración con Open Food Facts
-- [ ] Sistema de precios reportados por usuarios
-- [ ] Primer convenio con tienda regional
-- [ ] Publicidad contextual y ofertas
-- [ ] Historial y lista del súper
-- [ ] Versión iOS
+Si quieres aportar algo — un fix, una mejora, una idea — adelante:
 
----
+```bash
+git checkout -b mejora/lo-que-sea
+git commit -m "descripción de lo que hiciste" 
+git push origin mejora/lo-que-sea
+```
 
-##  Contribuciones
-
-Este proyecto está abierto a contribuciones. Si quieres participar:
-
-1. Haz un fork del repositorio
-2. Crea una rama para tu cambio (`git checkout -b mejora/nombre-de-tu-mejora`)
-3. Haz commit de tus cambios (`git commit -m "agrega nueva funcionalidad"`)
-4. Sube tu rama (`git push origin mejora/nombre-de-tu-mejora`)
-5. Abre un Pull Request
+Y abres un Pull Request. Así de sencillo.
 
 ---
 
-##  Licencia
+## Licencia
 
-Este proyecto está bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+MIT — úsalo, modifícalo, compártelo. Solo da crédito.
 
 ---
 
-> *"No más checadores rotos. El precio en tu mano."*
+*"No más checadores rotos."*

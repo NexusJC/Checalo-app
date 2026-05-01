@@ -8,6 +8,7 @@ import 'pantallas/cupones.dart';
 import 'tema/colores.dart';
 import 'estado/estado_tienda.dart';
 
+
 void main() {
   runApp(
     // Provider envuelve toda la app para compartir el estado de la tienda
